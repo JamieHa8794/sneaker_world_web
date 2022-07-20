@@ -1,7 +1,12 @@
 const pg = require('pg')
-const express = require('express')
+const express = require('express');
+const path = require('path')
 
 const app = express();
+
+app.use('/public', express.static(path.join(__dirname, 'public')))
+
+
 
 app.get('/', async(req, res, next)=>{
     try{
@@ -10,6 +15,7 @@ app.get('/', async(req, res, next)=>{
         res.send(`
             <html>
                 <head>
+                <link rel='stylesheet' href='/public/styles.css'/>
                 </head>
                 <body>
                     <h1>
