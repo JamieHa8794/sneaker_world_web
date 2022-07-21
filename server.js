@@ -7,7 +7,6 @@ const app = express();
 app.use('/public', express.static(path.join(__dirname, 'public')))
 
 
-
 app.get('/', async(req, res, next)=>{
     try{
         const response = await client.query('SELECT * FROM Brand;')
@@ -46,7 +45,46 @@ app.get('/', async(req, res, next)=>{
     }
 })
 
-
+app.get('/brands/:id', async(req, res, next)=>{
+    try{
+        const promises = [
+            client.query('SELECT * FROM Brand WHERE id=$1;', [req.params.id]),
+            client.query('SELECT * FROM Sneaker WHERE brand_id=$1;', [req.params.id]) 
+        ];
+        const [brandsResponse, sneakersResponse]= await Promise.all(promises)
+        const brand = brandsResponse.rows[0]
+        const sneakers = sneakersResponse.rows;
+        res.send(`
+            <html>
+                <head>
+                <link rel='stylesheet' href='/public/styles.css'/>
+                </head>
+                <body>
+                    <h1>
+                        Sneaker World
+                    </h1>
+                    <h2>
+                        <a href='/'>Brands</a> (${brand.name})
+                    </h2>
+                    <ul>
+                    ${sneakers.map(sneaker =>{
+                        return(`
+                            <li>
+                                ${sneaker.name}
+                            </li>
+                        `)
+                    }).join('')
+                    }
+                    </ul>
+                   
+                </body>
+            </html>
+        `)
+    }
+    catch(err){
+        next(err);
+    }
+})
 
 
 const port = process.env.PORT || 3000;
